@@ -34,9 +34,14 @@ class Error(Exception):
 
 
 class PVOutputOrg(object):
+    ## create an object suitable for poking pvoutput.org with
+    # @param config_filepath a path to a pvoutput config file
     def __init__(self, config_filepath):
+        ## json structure holding config
         self.config = json.load(open(config_filepath, "r"))
+        ## pvoutput.org API key
         self.apikey = self.config["apikey"]
+        ## host name and port to connect to (e.g. pvoutput.org)
         self.hostnameport = self.config["hostname"]
 
         if not apikey:
@@ -45,8 +50,8 @@ class PVOutputOrg(object):
         if not hostnameport:
             raise Error("No or bad hostname in pvoutput config")
 
-    # call a script on the server configured in the config file
-    # @fixme currently server includes port number
+    ## call a script on the server configured in the config file
+    # @todo currently server includes port number - break it out
     # @param sid pvoutput.org system id
     # @param scriptpath path to script on server
     # @param data content of request
@@ -64,12 +69,12 @@ class PVOutputOrg(object):
                         % (str(responsecode), self.hostnameport))
         return filehandle
 
-    # add a single data point to the server
+    ## add a single data point to the server
     # @param sid a pvoutput system id
     # @param timestamp Unix timestamp to add the data for
     # @param total_production total system production at this timestamp
     # @return None
-    # @fixme check API response
+    # @todo check API response
     def addstatus(self, sid, timestamp, total_production):
         print("addstatus")
 
@@ -81,11 +86,11 @@ class PVOutputOrg(object):
         })
         self.make_request(self, sid, "/service/r2/addstatus.jsp", data)
 
-    # upload a whole bunch of statuses at the same time
-    # @param sid a a system ID
+    ## upload a whole bunch of statuses at the same time
+    # @param sid a pvoutput system ID
     # @param batch a list of lists to upload [[ timestamp,totalprod ], ...]
     # @return None
-    # @fixme should check server response rather than just printing...
+    # @todo should check server response rather than just printing...
     def addbatchstatus(self, sid, batch):
         new = []
         for prodinfo in batch:
@@ -109,7 +114,7 @@ class PVOutputOrg(object):
         content = filehandle.read()
         print("Content returned from server: %s" % content)
 
-    # delete a day's status
+    ## delete a day's status
     # @param sid a pvoutput system id
     # @param date a datetime object for the first time to return (?!)
     # @return None
@@ -122,11 +127,13 @@ class PVOutputOrg(object):
         data = urllib.urlencode(opts)
         self.make_request(sid, "/service/r2/deletestatus.jsp", data)
 
-    # retrieve data for a time period - always from midnight ATM
+    ## retrieve data for a time period - always from midnight ATM
     # @param sid a pvoutput system id
     # @param date a datetime object for the first time to return (?!)
+    # @param timefrom a time in pvoutput format - lowest time to return
+    # @param timeto a time in pvoutput format - highest time to return
     # @return a list of lists
-    # @fixme this is just dodgy, dodgy, dodgy
+    # @todo this is just dodgy, dodgy, dodgy
     def getstatus(self, sid, date, timefrom, timeto):
         formatted_date, formatted_time = self.format_date_and_time(date)
         opts = {
@@ -153,7 +160,7 @@ class PVOutputOrg(object):
                         int(outputentries[2])])
         return ret
 
-    # parse a date and time supplied by pvoutput.org
+    ## parse a date and time supplied by pvoutput.org
     # @param pvoutput_date a date in pvoutput API form
     # @param pvoutput_time a time in pvoutput API form
     # @return a datetime object
@@ -164,7 +171,7 @@ class PVOutputOrg(object):
                                  int(pvoutput_time[0:2]),
                                  int(pvoutput_time[3:5]))
 
-    # format a datetime object into date and time suitable for pvoutput API
+    ## format a datetime object into date and time suitable for pvoutput API
     # @param datetime a datetime object
     # @return a formatted tuple of strings, (date,time)
     def format_date_and_time(self, datetime):
@@ -172,15 +179,15 @@ class PVOutputOrg(object):
         formatted_time = time.strftime("%H:%M", datetime.timetuple())
         return (formatted_date, formatted_time)
 
-    # returns true if a donation has been made for the apikey being used
-    # @fixme this should pull its return value from the config
+    ## returns true if a donation has been made for the apikey being used
+    # @todo this should pull its return value from the config
     # @return whether the api-key can use donation-mode
     def donation_mode(self):
         return True
 
-    # returns the number of days ago you can set values using the batchstatus
+    ## returns the number of days ago you can set values using the batchstatus
     # script
-    # @fixme rename me
+    # @todo rename me
     # @return number of days ago the batchstatus script will take in API
     def days_ago_accepted_by_api(self):
         if self.donation_mode():
