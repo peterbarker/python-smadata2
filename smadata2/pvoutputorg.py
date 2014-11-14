@@ -44,19 +44,20 @@ class PVOutputOrg(object):
         ## host name and port to connect to (e.g. pvoutput.org)
         self.hostnameport = self.config["hostname"]
 
-        if not apikey:
+        if not self.apikey:
             raise Error("No or bad apikey in pvoutput config")
 
-        if not hostnameport:
+        if not self.hostnameport:
             raise Error("No or bad hostname in pvoutput config")
 
-    ## call a script on the server configured in the config file
-    # @todo currently server includes port number - break it out
-    # @param sid pvoutput.org system id
-    # @param scriptpath path to script on server
-    # @param data content of request
-    # @return filehandle-ish thing containing response from server
     def make_request(self, sid, scriptpath, data):
+        """ call a script on the server configured in the config file
+        @todo currently server includes port number - break it out
+        @param sid pvoutput.org system id
+        @param scriptpath path to script on server
+        @param data content of request
+        @return filehandle-ish thing containing response from server"""
+
         url = "http://" + self.hostnameport + scriptpath
 
         req = urllib2.Request(url=url, data=data)
