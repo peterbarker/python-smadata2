@@ -73,7 +73,7 @@ def upload_unuploaded(args):
                                                               mypvoutput)
         uploader.setVerbose(1)
         
-        print("Uploading unuploaded statuses for %s" % system)
+        print("Uploading unuploaded statuses for %s" % (system.name))
         uploader.upload_unuploaded_statuses()
 
 def addoutput(args):

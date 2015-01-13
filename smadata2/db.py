@@ -153,21 +153,22 @@ class SMADatabaseSQLiteV0(SMADatabase):
         r = c.fetchall()
         return r
 
-    # def get_entries_younger_than(self, serial, entry):
-    #     timestamp = entry[0]
-    #     c = self.conn.cursor()
-    #     c.execute("SELECT timestamp,total_yield "
-    #               "FROM generation "
-    #               "WHERE inverter_serial = ? AND "
-    #               " timestamp > ? "
-    #               "ORDER BY timestamp ASC", (serial, str(timestamp)))
-    #     r = c.fetchall()
-    #     return r
+    def get_production(self, inverters, timestamp):
+        serials = ','.join(x.serial for x in inverters)
+        c = self.conn.cursor()
+        c.execute("SELECT timestamp,sum(total_yield),count(inverter_serial) "
+                  "FROM generation "
+                  "WHERE inverter_serial in ( ? ) AND "
+                  " timestamp = ? "
+                  "group by timestamp "
+                  "ORDER BY timestamp ASC", (serials, str(timestamp)))
+        r = c.fetchone()
+        return r
 
     def get_productions_younger_than(self, inverters, timestamp):
         serials = ','.join(x.serial for x in inverters)
         c = self.conn.cursor()
-        c.execute("SELECT timestamp,total_yield,count(inverter_serial) "
+        c.execute("SELECT timestamp,sum(total_yield),count(inverter_serial) "
                   "FROM generation "
                   "WHERE inverter_serial in ( ? ) AND "
                   " timestamp > ? "
@@ -194,7 +195,6 @@ class SMADatabaseSQLiteV0(SMADatabase):
         return r[0]
 
     def pvoutput_maybe_init_system(self, sid):
-        print(sid)
         c = self.conn.cursor()
         c.execute("SELECT * FROM pvoutput"
                   " WHERE sid = ?",

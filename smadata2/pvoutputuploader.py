@@ -1,6 +1,8 @@
 import time
 import datetime
 
+import sys
+
 class PVOutputUploader(object):
     def __init__(self, db, system, pvoutput):
         self.verbose = False
@@ -75,9 +77,8 @@ class PVOutputUploader(object):
     # @return trimmed status list
     # @note each day needs a baseline-no-production-yet datapoint
     # @fixme change this to screw with statuses in-place instead
-    def trim_unwanted_unuploaded_statuses(self, last_datetime, statuses):
+    def trim_unwanted_unuploaded_statuses(self, last, statuses):
         skipping = False
-        last = [None,last_datetime] # *cough*
         ret = []
         while statuses:
             this = statuses.pop(0)
@@ -116,19 +117,19 @@ class PVOutputUploader(object):
             self.db.pvoutput_set_last_datetime_uploaded(sid, 0)
             last_datetime = self.db.pvoutput_get_last_datetime_uploaded(sid)
 
-        print("last_datetime=%d" % last_datetime)
+#        print("last_datetime=%d" % last_datetime)
         prods = self.db.get_productions_younger_than(self.system.inverters(), last_datetime)
-        print("prods")
-        print len(prods)
-        new_prods = self.trim_unwanted_unuploaded_statuses(last_datetime,prods)
-        print("new_prods")
-        print len(new_prods)
+#        print("prods: %s" % (prods))
+        last = self.db.get_production(self.system.inverters(),last_datetime)
+#        print("last: ",last)
+        new_prods = self.trim_unwanted_unuploaded_statuses(last,prods)
+        print("new_prods: %s" % (new_prods))
         prods = new_prods
         if prods:
             self.send_production(prods)
             new_last = prods[-1]
             new_last_datetime = new_last[0]
-            print("new ldate_datetime=" + str(new_last_datetime))
+#            print("new_last_datetime=" + str(new_last_datetime))
             self.db.pvoutput_set_last_datetime_uploaded(sid, new_last_datetime)
         else:
             print("No un-uploaded production")

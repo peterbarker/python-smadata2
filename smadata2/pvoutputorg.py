@@ -121,8 +121,7 @@ class PVOutputOrgConnection(object):
             "data": productiondata,
             "c1": 1
         })
-        filehandle = self.make_request("/service/r2/addbatchstatus.jsp",
-                                       data)
+        filehandle = self.make_request("/service/r2/addbatchstatus.jsp", data)
         content = filehandle.read()
         print("Content returned from server: %s" % content)
 
